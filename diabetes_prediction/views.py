@@ -26,6 +26,18 @@ class PredictDiabetesAPIView(APIView):
 
             result = model.predict(input_query)[0]
 
-            return Response({'outcome': int(result)}, status=status.HTTP_200_OK)
+            if not int(result):
+                response_message = {
+                    'output': int(result),
+                    'message': "Good news! Based on the prediction, you have a low risk of diabetes. However, we recommend regular check-ups for your peace of mind."
+                }
+            else:
+                response_message = {
+                    'output': int(result),
+                    'message': "Please note, the prediction indicates a potential risk of diabetes. It's important to consult with a healthcare professional for a thorough evaluation."
+                }
+
+            return Response(response_message, status=status.HTTP_200_OK)
+        
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

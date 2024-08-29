@@ -13,7 +13,6 @@ with open(model_path, 'rb') as f:
 class PredictCancerAPIView(APIView):
     def post(self, request, *args, **kwargs):
         try:
-            # diagnosis = int(request.data.get('diagnosis'))
             radius_mean = float(request.data.get('radius_mean'))
             texture_mean = float(request.data.get('texture_mean'))
             perimeter_mean = float(request.data.get('perimeter_mean'))
@@ -44,7 +43,7 @@ class PredictCancerAPIView(APIView):
             concave_points_worst = float(request.data.get('concave points_worst'))
             symmetry_worst = float(request.data.get('symmetry_worst'))
             fractal_dimension_worst = float(request.data.get('fractal_dimension_worst'))
-#diagnosis,
+
             input_query = np.array([[ radius_mean, texture_mean, perimeter_mean, area_mean, 
                                      smoothness_mean, compactness_mean, concavity_mean, concave_points_mean, 
                                      symmetry_mean, fractal_dimension_mean, radius_se, texture_se, perimeter_se, 
@@ -55,7 +54,18 @@ class PredictCancerAPIView(APIView):
 
             result = model.predict(input_query)[0]
 
-            return Response({'output': int(result)}, status=status.HTTP_200_OK)
+            if not int(result):
+                response_message = {
+                    'output': int(result),
+                    'message': "Good news! Based on the prediction, you have a low risk of cancer. However, we recommend regular check-ups for your peace of mind."
+                }
+            else:
+                response_message = {
+                    'output': int(result),
+                    'message': "Please note, the prediction indicates a potential risk of cancer. It's important to consult with a healthcare professional for a thorough evaluation."
+                }
+
+            return Response(response_message, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
